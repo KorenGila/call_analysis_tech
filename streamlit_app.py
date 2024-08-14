@@ -10,8 +10,6 @@ st.set_page_config(
     page_icon=':earth_americas:',  # This is an emoji shortcode. Could be a URL too.
 )
 
-st.write("v0")
-
 available_stocks = ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'TSLA']
 
 # -----------------------------------------------------------------------------

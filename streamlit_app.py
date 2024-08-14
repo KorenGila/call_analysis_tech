@@ -1,20 +1,19 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
-import math
 import numpy as np
-from pathlib import Path
 from datetime import datetime, timedelta
 
 # Set the title and favicon that appear in the Browser's tab bar.
 st.set_page_config(
     page_title='Call Analysis',
-    page_icon=':earth_americas:', # This is an emoji shortcode. Could be a URL too.
+    page_icon=':earth_americas:',  # This is an emoji shortcode. Could be a URL too.
 )
 
 st.write("v0")
 
 available_stocks = ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'TSLA']
+
 # -----------------------------------------------------------------------------
 # Declare some useful functions.
 
@@ -38,78 +37,54 @@ def get_stock_data(ticker, start_date='2020-01-01', end_date='2023-12-31'):
     except Exception as e:
         st.error(f"An error occurred: {e}")
         return pd.DataFrame()  # Return an empty DataFrame in case of error
+
 # -----------------------------------------------------------------------------
 # Draw the actual page
 
-# Add some spacing
-''
-''
 end_date = datetime.today()
 start_date = end_date - timedelta(days=6*30)  # Approximate 6 months as 180 days
 start_date_str = start_date.strftime('%Y-%m-%d')
 end_date_str = end_date.strftime('%Y-%m-%d')
 
-
-stocks = ['MSFT']
-
 selected_stocks = st.multiselect(
-    'Which stocks do yu want to view ?',
-    options=available_stocks,  
-    default=['MSFT'] 
+    'Which stocks do you want to view?',
+    options=available_stocks,
+    default=['MSFT']
 )
 
 stock_data_df = pd.DataFrame()
-if selected_stocks and not stock_data_df.empty:
-    st.warning("Please select at least one stock.")
-     ''
-     ''
-     ''
-    
+if selected_stocks:
     # Filter the data
-    
-     from_year = 2024
-     to_year = 2024
-    
-     stock_data_df = pd.DataFrame()
-     for stock in selected_stocks:
-         stock_df = get_stock_data(ticker=stock, start_date=start_date_str, end_date=end_date_str)
-         stock_df['Stock Ticker'] = stock
-         stock_data_df = pd.concat([stock_data_df, stock_df])
-    
-    
-    
-     def calculate_volatility(prices):
-         if len(prices) < 2:
-             return np.nan  # Not enough data to calculate volatility
-         returns = prices.pct_change().dropna()
-        
-         # Calculate the standard deviation of returns
-         volatility = np.std(returns)*np.sqrt(252)
-          return volatility
-        
-    
-     st.header('Stock Volatility', divider='gray')
-    
-    
-     for stock in selected_stocks:
-         stock_prices = stock_data_df[stock_data_df['Stock Ticker'] == stock]['Close']
-         if not stock_prices.empty:
-             volatility = calculate_volatility(stock_prices)
-             st.write(f"Volatility for {stock}: {volatility:.4f}")
-    
-    
-     st.header('Stock price over time', divider='gray')
-    
-     ''
-     if not stock_data_df.empty:
-         st.line_chart(
-             stock_data_df,
-             x='Date',  # Use 'Date' to get daily prices
-             y='Close',  # Assuming we want to plot the closing price
-             color='Stock Ticker',
-         )
+    stock_data_df = pd.DataFrame()
+    for stock in selected_stocks:
+        stock_df = get_stock_data(ticker=stock, start_date=start_date_str, end_date=end_date_str)
+        stock_df['Stock Ticker'] = stock
+        stock_data_df = pd.concat([stock_data_df, stock_df])
+
+    def calculate_volatility(prices):
+        if len(prices) < 2:
+            return np.nan  # Not enough data to calculate volatility
+        returns = prices.pct_change().dropna()
+        # Calculate the standard deviation of returns
+        volatility = np.std(returns) * np.sqrt(252)
+        return volatility
+
+    st.header('Stock Volatility', divider='gray')
+    for stock in selected_stocks:
+        stock_prices = stock_data_df[stock_data_df['Stock Ticker'] == stock]['Close']
+        if not stock_prices.empty:
+            volatility = calculate_volatility(stock_prices)
+            st.write(f"Volatility for {stock}: {volatility:.4f}")
+
+    st.header('Stock price over time', divider='gray')
+    if not stock_data_df.empty:
+        st.line_chart(
+            stock_data_df,
+            x='Date',  # Use 'Date' to get daily prices
+            y='Close',  # Assuming we want to plot the closing price
+            color='Stock Ticker',
+        )
     else:
         st.warning("No data available to display.")
 else:
     st.warning("Please select at least one stock.")
-

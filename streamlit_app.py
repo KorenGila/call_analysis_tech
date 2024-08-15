@@ -50,6 +50,15 @@ selected_stocks = st.multiselect(
     default=['MSFT']
 )
 
+def get_call_price(stock)
+    S = stock.history(period="1d")['Close'][0]
+    K = 95
+    R = 0.05
+    T = 1
+    sigma = calculate_volatility(stock_data_df[stock_data_df['Stock Ticker'] == stock]['Close'])
+
+
+
 stock_data_df = pd.DataFrame()
 if selected_stocks:
     # Filter the data

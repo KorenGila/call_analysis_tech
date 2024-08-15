@@ -50,7 +50,7 @@ selected_stocks = st.multiselect(
     default=['MSFT']
 )
 
-def get_call_price(stock)
+def get_call_price(stock):
     S = stock.history(period="1d")['Close'][0]
     K = 95
     R = 0.05

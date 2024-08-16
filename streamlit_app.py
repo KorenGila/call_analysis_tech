@@ -3,6 +3,7 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
+from scipy.stats import norm
 
 # Set the title and favicon that appear in the Browser's tab bar.
 st.set_page_config(
@@ -51,11 +52,22 @@ selected_stocks = st.multiselect(
 )
 
 def get_call_price(stock):
-    S = stock.history(period="1d")['Close'][0]
+    last = yf.Ticker(stock)
+    S = last.history(period="1d")['Close'][0]
     K = 95
     R = 0.05
     T = 1
     sigma = calculate_volatility(stock_data_df[stock_data_df['Stock Ticker'] == stock]['Close'])
+
+    d1 = (np.log(S / K) + (R + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
+    d2 = d1 - sigma * np.sqrt(T)
+
+    Nd1 = norm.cdf(d1)
+    Nd2 = norm.cdf(d2)
+
+    C = S*Nd1-K*np.exp(-R*T)*Nd2
+
+    return C
 
 
 
@@ -93,5 +105,12 @@ if selected_stocks:
         )
     else:
         st.warning("No data available to display.")
+
+    st.header('Call Price', divider='gray')
+    
+    for stock in selected_stocks:
+        Call_price = get_call_price(stock)
+        st.write(f"Call price for {stock}: {Call_price:.4f}")
+        
 else:
     st.warning("Please select at least one stock.")

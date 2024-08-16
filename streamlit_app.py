@@ -92,7 +92,27 @@ def get_call_price(stock):
 
     return C
 
+def get_put_price(stock):
+    last = yf.Ticker(stock)
+    history_data = last.history(period="1d")
+    
+    if history_data.empty:
+        st.warning(f"No data available for {stock}.")
+        return None
 
+    S = history_data['Close'][0]
+
+    sigma = calculate_volatility(stock_data_df[stock_data_df['Stock Ticker'] == stock]['Close'])
+
+    d1 = (np.log(S / K) + (R + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
+    d2 = d1 - sigma * np.sqrt(T)
+
+    Nd1 = norm.cdf(-d1)
+    Nd2 = norm.cdf(-d2)
+
+    P = -S*Nd1+K*np.exp(-R*T)*Nd2
+
+    return P
 
 stock_data_df = pd.DataFrame()
 if selected_stocks:
@@ -150,6 +170,9 @@ if selected_stocks:
             st.write(f"Current price of {stock}: {final:.2f}")
             Call_price = get_call_price(stock)
             st.write(f"Call price for {stock}: {Call_price:.2f}")
+            Put_price = get_put_price(stock)
+            st.write(f"Put price for {stock}: {Put_price:.2f}")
+
 
     
         

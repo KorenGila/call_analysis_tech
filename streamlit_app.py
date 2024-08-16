@@ -43,6 +43,8 @@ start_date = end_date - timedelta(days=6*30)  # Approximate 6 months as 180 days
 start_date_str = start_date.strftime('%Y-%m-%d')
 end_date_str = end_date.strftime('%Y-%m-%d')
 
+
+
 def is_valid_ticker(ticker):
     try:
         stock = yf.Ticker(ticker)
@@ -115,6 +117,8 @@ def get_put_price(stock):
     return P
 
 stock_data_df = pd.DataFrame()
+
+
 if selected_stocks:
     # Filter the data
     stock_data_df = pd.DataFrame()
@@ -139,9 +143,18 @@ if selected_stocks:
             st.write(f"Volatility for {stock}: {volatility:.4f}")
 
     st.header('Stock price over time', divider='gray')
+    old_data_df = pd.DataFrame()
+    for stock in selected_stocks:
+        stock_data = yf.download(stock, period='max')
+        first_trading_date = stock_data.index.min()
+        first_date_str = first_trading_date.strftime('%Y-%m-%d')
+        old_df = get_stock_data(ticker=stock, start_date=first_date_str, end_date=end_date_str)
+        old_df['Stock Ticker'] = stock
+        old_data_df = pd.concat([old_data_df, old_df])
+    
     if not stock_data_df.empty:
         st.line_chart(
-            stock_data_df,
+            old_data_df,
             x='Date',  # Use 'Date' to get daily prices
             y='Close',  # Assuming we want to plot the closing price
             color='Stock Ticker',
@@ -152,7 +165,7 @@ if selected_stocks:
     st.header('Black-Scholes Suggested European Call Price', divider='gray')
             
     R = st.number_input("Interest Rate", min_value=-0.01, max_value=1.0, value = 0.05)
-    K = st.number_input("Strike Price", min_value=0.0, value = 100.0)
+    K = st.number_input("Strike Price", min_value=0.0, value = 100.0, step=10.0)
     T = st.number_input("Time to maturity (years)", min_value=0.0, value = 1.0)
 
 

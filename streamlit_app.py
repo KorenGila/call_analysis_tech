@@ -11,8 +11,6 @@ st.set_page_config(
     page_icon=':earth_americas:',  # This is an emoji shortcode. Could be a URL too.
 )
 
-available_stocks = ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'TSLA']
-
 # -----------------------------------------------------------------------------
 # Declare some useful functions.
 
@@ -45,18 +43,43 @@ start_date = end_date - timedelta(days=6*30)  # Approximate 6 months as 180 days
 start_date_str = start_date.strftime('%Y-%m-%d')
 end_date_str = end_date.strftime('%Y-%m-%d')
 
-selected_stocks = st.multiselect(
-    'Which stocks do you want to view?',
-    options=available_stocks,
-    default=['MSFT']
-)
+def is_valid_ticker(ticker):
+    try:
+        stock = yf.Ticker(ticker)
+        info = stock.info
+        # Check for a key that is almost always present in valid tickers
+        if info.get('symbol') is not None:
+            return True
+    except Exception as e:
+        return False
+    return False
+
+# Allow user to input any ticker symbol
+user_input = st.text_input("Enter one or more stock tickers (comma separated). (Ex: AAPL, GOOGL, ...)", value="MSFT")
+
+# Process the user input into a list of tickers
+tickers = [ticker.strip().upper() for ticker in user_input.split(',') if ticker.strip()]
+
+# Validate each ticker
+selected_stocks = []
+for ticker in tickers:
+    if is_valid_ticker(ticker):
+        selected_stocks.append(ticker)
+    else:
+        st.warning(f"{ticker} is not a valid ticker symbol.")
+
+
 
 def get_call_price(stock):
     last = yf.Ticker(stock)
-    S = last.history(period="1d")['Close'][0]
-    K = 95
-    R = 0.05
-    T = 1
+    history_data = last.history(period="1d")
+    
+    if history_data.empty:
+        st.warning(f"No data available for {stock}.")
+        return None
+
+    S = history_data['Close'][0]
+
     sigma = calculate_volatility(stock_data_df[stock_data_df['Stock Ticker'] == stock]['Close'])
 
     d1 = (np.log(S / K) + (R + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
@@ -106,11 +129,29 @@ if selected_stocks:
     else:
         st.warning("No data available to display.")
 
-    st.header('Call Price', divider='gray')
-    
+    st.header('Black-Scholes Suggested European Call Price', divider='gray')
+            
+    R = st.number_input("Interest Rate", min_value=-0.01, max_value=1.0, value = 0.05)
+    K = st.number_input("Strike Price", min_value=0.0, value = 100.0)
+    T = st.number_input("Time to maturity (years)", min_value=0.0, value = 1.0)
+
+
     for stock in selected_stocks:
-        Call_price = get_call_price(stock)
-        st.write(f"Call price for {stock}: {Call_price:.4f}")
+        st.text("")
+        st.text("")
+        st.text("")
+        last = yf.Ticker(stock)
+        history_data = last.history(period="1d")
+    
+        if history_data.empty:
+            st.warning(f"No data available for {stock}.")
+        else:    
+            final = history_data['Close'][0]
+            st.write(f"Current price of {stock}: {final:.2f}")
+            Call_price = get_call_price(stock)
+            st.write(f"Call price for {stock}: {Call_price:.2f}")
+
+    
         
 else:
     st.warning("Please select at least one stock.")

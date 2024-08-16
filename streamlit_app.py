@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 from scipy.stats import norm
+from streamlit_tags import st_tags
 
 # Set the title and favicon that appear in the Browser's tab bar.
 st.set_page_config(
@@ -57,10 +58,12 @@ def is_valid_ticker(ticker):
     return False
 
 # Allow user to input any ticker symbol
-user_input = st.text_input("Enter one or more stock tickers (comma separated). (Ex: AAPL, GOOGL, ...)", value="MSFT")
+tickers = st_tags(
+    value = ["MSFT"],
+    label="Enter one stock ticker at a time."
+)
 
 # Process the user input into a list of tickers
-tickers = [ticker.strip().upper() for ticker in user_input.split(',') if ticker.strip()]
 
 # Validate each ticker
 selected_stocks = []
@@ -135,23 +138,17 @@ if selected_stocks:
         volatility = np.std(returns) * np.sqrt(252)
         return volatility
 
-    st.header('Stock Volatility', divider='gray')
-    for stock in selected_stocks:
-        stock_prices = stock_data_df[stock_data_df['Stock Ticker'] == stock]['Close']
-        if not stock_prices.empty:
-            volatility = calculate_volatility(stock_prices)
-            st.write(f"Volatility for {stock}: {volatility:.4f}")
-
-    st.header('Stock price over time', divider='gray')
+    st.header('Stock Price Over Time', divider='gray')
     old_data_df = pd.DataFrame()
     for stock in selected_stocks:
         stock_data = yf.download(stock, period='max')
-        first_trading_date = stock_data.index.min()
-        first_date_str = first_trading_date.strftime('%Y-%m-%d')
-        old_df = get_stock_data(ticker=stock, start_date=first_date_str, end_date=end_date_str)
-        old_df['Stock Ticker'] = stock
-        old_data_df = pd.concat([old_data_df, old_df])
-    
+        if not stock_data.empty:
+            first_trading_date = stock_data.index.min()
+            first_date_str = first_trading_date.strftime('%Y-%m-%d')
+            old_df = get_stock_data(ticker=stock, start_date=first_date_str, end_date=end_date_str)
+            old_df['Stock Ticker'] = stock
+            old_data_df = pd.concat([old_data_df, old_df])
+
     if not stock_data_df.empty:
         st.line_chart(
             old_data_df,
@@ -161,6 +158,15 @@ if selected_stocks:
         )
     else:
         st.warning("No data available to display.")
+
+    st.header('Stock Volatility', divider='gray')
+    for stock in selected_stocks:
+        stock_prices = stock_data_df[stock_data_df['Stock Ticker'] == stock]['Close']
+        if not stock_prices.empty:
+            volatility = calculate_volatility(stock_prices)
+            st.write(f"Volatility for {stock}: {volatility:.4f}")
+    
+    
 
     st.header('Black-Scholes Suggested European Call Price', divider='gray')
             

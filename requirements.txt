@@ -2,3 +2,4 @@ streamlit
 pandas
 yfinance
 scipy
+streamlit-tags

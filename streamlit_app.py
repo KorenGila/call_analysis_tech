@@ -159,41 +159,102 @@ if selected_stocks:
     else:
         st.warning("No data available to display.")
 
-    st.header('Stock Volatility', divider='gray')
-    for stock in selected_stocks:
-        stock_prices = stock_data_df[stock_data_df['Stock Ticker'] == stock]['Close']
-        if not stock_prices.empty:
-            volatility = calculate_volatility(stock_prices)
-            st.write(f"Volatility for {stock}: {volatility:.4f}")
+    
+   # for stock in selected_stocks:
+    #    stock_prices = stock_data_df[stock_data_df['Stock Ticker'] == stock]['Close']
+     #   if not stock_prices.empty:
+      #      volatility = calculate_volatility(stock_prices)
+       #     st.write(f"Volatility for {stock}: {volatility:.4f}")
     
     
 
-    st.header('Black-Scholes Suggested European Call Price', divider='gray')
+    st.header('Black-Scholes Suggested European Call And Put Price', divider='gray')
             
     R = st.number_input("Interest Rate", min_value=-0.01, max_value=1.0, value = 0.05)
     K = st.number_input("Strike Price", min_value=0.0, value = 100.0, step=10.0)
     T = st.number_input("Time to maturity (years)", min_value=0.0, value = 1.0)
 
+    css = """
+        <style>
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 20px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .circle {
+            width: 200px;
+            height: 200px;
+            background-color: #3498db;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .circle .content {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        </style>
+    """
+
+    # Initialize HTML content
+    html_content = '<div class="container">'
 
     for stock in selected_stocks:
-        st.text("")
-        st.text("")
-        st.text("")
         last = yf.Ticker(stock)
         history_data = last.history(period="1d")
-    
+        
         if history_data.empty:
             st.warning(f"No data available for {stock}.")
-        else:    
+        else:
+            stock_prices = stock_data_df[stock_data_df['Stock Ticker'] == stock]['Close']
+            volatility = calculate_volatility(stock_prices)
+            volatility = f"{volatility:.2f}"    
             final = history_data['Close'][0]
-            st.write(f"Current price of {stock}: {final:.2f}")
-            Call_price = get_call_price(stock)
-            st.write(f"Call price for {stock}: {Call_price:.2f}")
-            Put_price = get_put_price(stock)
-            st.write(f"Put price for {stock}: {Put_price:.2f}")
-
-
-    
+            final = f"{final:.2f}"
         
+            final = history_data['Close'][-1]
+            final = f"{final:.2f}"
+            
+            CaP = get_call_price(stock)
+            CaP = f"{CaP:.2f}"
+            Put_price = get_put_price(stock) 
+            Put_price = f"{Put_price:.2f}"
+
+            # HTML for each circle
+            circle_html = f"""<div class="circle">
+                <div class="content">{stock}</div>
+                <div>
+                    Current Price: {final}<br>
+                    Volatility: {volatility}<br>
+                    Call Price: {CaP}<br>
+                    Put Price: {Put_price}
+                </div>
+            </div>
+            """
+            html_content += circle_html
+
+    html_content += '</div>'
+
+    st.markdown(css + html_content, unsafe_allow_html=True)
+
 else:
     st.warning("Please select at least one stock.")
+
+
+
+
+# Render the HTML in Streamlit

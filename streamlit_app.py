@@ -283,62 +283,71 @@ elif page == "Portfolio Optimization":
         else:
             all_stock_data[ticker] = stock_df['Adj Close']
 
-
     mu = expected_returns.mean_historical_return(all_stock_data)
 
-    S = risk_models.sample_cov(all_stock_data)
+    filtered_stocks = {ticker: all_stock_data[ticker] for ticker in all_stock_data if mu[ticker] > 0}
 
-    ef = EfficientFrontier(mu, S)
+    if len(filtered_stocks) == 0:
+        if len(selected_stocks) == 0:
+            st.warning("Please select at least one stock.")
+        else:
+            st.error("No stocks have positive expected returns. Optimal portfolio includes no stock.")
+    else:
 
-    weights = ef.max_sharpe()
+        S = risk_models.sample_cov(all_stock_data)
 
-    clean_weights = ef.clean_weights()
+        ef = EfficientFrontier(mu, S)
 
-    weights_df = pd.DataFrame(list(clean_weights.items()), columns=['Ticker', 'Weight'])
-    weights_df = weights_df[weights_df['Weight'] > 0]  # Filter out zero weights
+        weights = ef.max_sharpe()
 
-    weights_df = weights_df.sort_values(by='Weight', ascending=False)
+        clean_weights = ef.clean_weights()
+
+        weights_df = pd.DataFrame(list(clean_weights.items()), columns=['Ticker', 'Weight'])
+        weights_df = weights_df[weights_df['Weight'] > 0]  # Filter out zero weights
+
+        weights_df = weights_df.sort_values(by='Weight', ascending=False)
+            
+        # Extract sorted tickers and weights
+        sorted_tickers = weights_df['Ticker'].tolist()
+        sorted_weights = weights_df['Weight'].tolist()
         
-    # Extract sorted tickers and weights
-    sorted_tickers = weights_df['Ticker'].tolist()
-    sorted_weights = weights_df['Weight'].tolist()
+        plt.clf()  # Clear any previous figures
+        fig, ax = plt.subplots()
+
+        wedges, texts, autotexts = ax.pie(
+            sorted_weights,
+            labels=sorted_tickers,
+            autopct='%1.1f%%',
+            startangle=90,
+            colors=plt.get_cmap('tab10').colors,
+            pctdistance=0.5
+        )
+
+        ax.legend(
+            wedges,  # Use the wedges for the legend labels
+            sorted_tickers,
+            title="Tickers",
+            loc="center left",
+            bbox_to_anchor=(1, 0, 0.5, 1)  # Adjust legend position (right of the plot)
+        )
+        # Customize appearance of text labels
+        for text in texts:
+            text.set_fontsize(12)
+            text.set_color('white')
+        for autotext in autotexts:
+            autotext.set_fontsize(10)
+            autotext.set_color('white')
+
+        ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+        ax.set_facecolor('none')  # Remove the background color of the plot
+        fig.patch.set_alpha(0)    # Make the figure background transparent
+
+        # Display the pie chart in Streamlit
+        st.subheader("Suggested percent of each stock in your portfolio:")
+
+
+        st.pyplot(fig)
     
-    plt.clf()  # Clear any previous figures
-    fig, ax = plt.subplots()
-
-    wedges, texts, autotexts = ax.pie(
-        sorted_weights,
-        labels=sorted_tickers,
-        autopct='%1.1f%%',
-        startangle=90,
-        colors=plt.get_cmap('tab10').colors,
-        pctdistance=0.5
-    )
-
-    ax.legend(
-        wedges,  # Use the wedges for the legend labels
-        sorted_tickers,
-        title="Tickers",
-        loc="center left",
-        bbox_to_anchor=(1, 0, 0.5, 1)  # Adjust legend position (right of the plot)
-    )
-    # Customize appearance of text labels
-    for text in texts:
-        text.set_fontsize(12)
-        text.set_color('white')
-    for autotext in autotexts:
-        autotext.set_fontsize(10)
-        autotext.set_color('white')
-
-    ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-    ax.set_facecolor('none')  # Remove the background color of the plot
-    fig.patch.set_alpha(0)    # Make the figure background transparent
-
-    # Display the pie chart in Streamlit
-    st.subheader("Suggested percent of each stock in your portfolio:")
-
-
-    st.pyplot(fig)
 
     
 

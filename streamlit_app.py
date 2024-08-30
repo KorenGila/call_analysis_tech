@@ -243,7 +243,6 @@ if page == "Call-Analysis":
         st.warning("Please select at least one stock.")
 
 elif page == "Portfolio Optimization":
-
     time.sleep(2)
     st.header('Portfolio Optimization Using The Markowitz Model', divider='gray')
     end_date = datetime.today()

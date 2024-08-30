@@ -242,6 +242,7 @@ if page == "Call-Analysis":
         st.warning("Please select at least one stock.")
 
 elif page == "Portfolio Optimization":
+    st.cache_data.clear()
     st.header('Portfolio Optimization Using The Markowitz Model', divider='gray')
     end_date = datetime.today()
     end_date_str = datetime.today().strftime('%Y-%m-%d')
@@ -277,7 +278,7 @@ elif page == "Portfolio Optimization":
 
     
     for ticker in selected_stocks:
-        stock_df = yf.download(ticker, start=start_date_str, end=end_date_str)
+        stock_df = yf.download(ticker, start=start_date_str, end=end_date_str, progress=False)
         if stock_df.empty:
             st.warning(f"No data available for {ticker}.")
         else:

@@ -305,15 +305,15 @@ elif page == "Portfolio Optimization":
         clean_weights = ef.clean_weights()
 
         weights_df = pd.DataFrame(list(clean_weights.items()), columns=['Ticker', 'Weight'])
-        weights_df = weights_df[weights_df['Weight'] > 0]  # Filter out zero weights
+        weights_df = weights_df[weights_df['Weight'] > 0]  
 
         weights_df = weights_df.sort_values(by='Weight', ascending=False)
             
-        # Extract sorted tickers and weights
+   
         sorted_tickers = weights_df['Ticker'].tolist()
         sorted_weights = weights_df['Weight'].tolist()
         
-        plt.clf()  # Clear any previous figures
+        plt.clf()  
         fig, ax = plt.subplots()
 
         wedges, texts, autotexts = ax.pie(
@@ -326,13 +326,12 @@ elif page == "Portfolio Optimization":
         )
 
         ax.legend(
-            wedges,  # Use the wedges for the legend labels
+            wedges, 
             sorted_tickers,
             title="Tickers",
             loc="center left",
-            bbox_to_anchor=(1, 0, 0.5, 1)  # Adjust legend position (right of the plot)
+            bbox_to_anchor=(1, 0, 0.5, 1) 
         )
-        # Customize appearance of text labels
         for text in texts:
             text.set_fontsize(12)
             text.set_color('white')
@@ -340,11 +339,11 @@ elif page == "Portfolio Optimization":
             autotext.set_fontsize(10)
             autotext.set_color('white')
 
-        ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-        ax.set_facecolor('none')  # Remove the background color of the plot
-        fig.patch.set_alpha(0)    # Make the figure background transparent
+        ax.axis('equal')  
+        ax.set_facecolor('none')  
+        fig.patch.set_alpha(0)    
 
-        # Display the pie chart in Streamlit
+
         st.subheader("Suggested percent of each stock in your portfolio:")
 
 

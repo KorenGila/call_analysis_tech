@@ -2,6 +2,7 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 import numpy as np
+import time
 from datetime import datetime, timedelta
 from scipy.stats import norm
 from streamlit_tags import st_tags
@@ -242,7 +243,8 @@ if page == "Call-Analysis":
         st.warning("Please select at least one stock.")
 
 elif page == "Portfolio Optimization":
-    st.cache_data.clear()
+
+    time.sleep(2)
     st.header('Portfolio Optimization Using The Markowitz Model', divider='gray')
     end_date = datetime.today()
     end_date_str = datetime.today().strftime('%Y-%m-%d')

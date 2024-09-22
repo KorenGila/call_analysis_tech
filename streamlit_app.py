@@ -75,12 +75,10 @@ if page == "Call-Analysis":
     def get_call_price(stock):
         last = yf.Ticker(stock)
         history_data = last.history(period="1d")
-        
         if history_data.empty:
             st.warning(f"No data available for {stock}.")
-            return None
-
-        S = history_data['Close'][0]
+        else:
+            S = history_data['Close'][0]
 
         sigma = calculate_volatility(stock_data_df[stock_data_df['Stock Ticker'] == stock]['Close'])
 

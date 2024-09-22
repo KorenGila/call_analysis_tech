@@ -74,7 +74,7 @@ if page == "Call-Analysis":
 
     def get_call_price(stock):
         last = yf.Ticker(stock)
-        history_data = last.history(period="1d")
+        history_data = last.history(period="5d")
         if history_data.empty:
             st.warning(f"No data available for {stock}.")
         else:

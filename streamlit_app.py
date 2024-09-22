@@ -94,7 +94,7 @@ if page == "Call-Analysis":
 
     def get_put_price(stock):
         last = yf.Ticker(stock)
-        history_data = last.history(period="1d")
+        history_data = last.history(period="5d")
         
         if history_data.empty:
             st.warning(f"No data available for {stock}.")
@@ -199,7 +199,7 @@ if page == "Call-Analysis":
 
         for stock in selected_stocks:
             last = yf.Ticker(stock)
-            history_data = last.history(period="1d")
+            history_data = last.history(period="5d")
             
             if history_data.empty:
                 st.warning(f"No data available for {stock}.")

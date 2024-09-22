@@ -13,9 +13,6 @@ import matplotlib.pyplot as plt
 
 
 
-
-
-
 st.set_page_config(
     page_title='Call Analysis',
     page_icon=':earth_americas:',  

@@ -143,14 +143,9 @@ if page == "Call-Analysis":
                 old_data_df = pd.concat([old_data_df, old_df])
 
         if not stock_data_df.empty:
-            st.write("Columns in the DataFrame:", old_data_df.columns)
-
-            # Flatten the multi-index columns for easier access
-            old_data_df.columns = ['_'.join(col).strip() if isinstance(col, tuple) else col for col in old_data_df.columns]
-
-            # Display the first few rows to confirm the change
-            st.write("Flattened DataFrame columns:")
-            st.dataframe(old_data_df.head())
+  
+            # Flatten the multi-index columns for easier access (removes empty second level if any)
+            old_data_df.columns = [col[0] if isinstance(col, tuple) else col for col in old_data_df.columns]
 
             # Ensure 'Date' column is properly formatted
             if 'Date' in old_data_df.columns:
@@ -161,9 +156,9 @@ if page == "Call-Analysis":
             try:
                 st.line_chart(
                     old_data_df,
-                    x='Date',  # Updated to match flattened columns
-                    y='Close',  # Updated to match flattened columns
-                    color='Stock Ticker_' if 'Stock Ticker_' in old_data_df.columns else None,
+                    x='Date',  # Now just 'Date'
+                    y='Close',  # Just 'Close' if you're working with one stock
+                    color='Stock Ticker' if 'Stock Ticker' in old_data_df.columns else None,
                 )
             except Exception as e:
                 st.error(f"Error displaying chart: {e}")

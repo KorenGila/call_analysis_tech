@@ -143,6 +143,7 @@ if page == "Call-Analysis":
                 old_data_df = pd.concat([old_data_df, old_df])
 
         if not stock_data_df.empty:
+            st.write("Columns in the DataFrame:", old_data_df.columns)
             if 'Date' not in old_data_df.columns:
                 old_data_df = old_data_df.reset_index()  
 

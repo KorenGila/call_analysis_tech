@@ -144,18 +144,26 @@ if page == "Call-Analysis":
 
         if not stock_data_df.empty:
             st.write("Columns in the DataFrame:", old_data_df.columns)
-            if 'Date' not in old_data_df.columns:
-                old_data_df = old_data_df.reset_index()  
 
-            if old_data_df['Date'].dtype != 'datetime64[ns]':
-                old_data_df['Date'] = pd.to_datetime(old_data_df['Date'])
+            # Flatten the multi-index columns for easier access
+            old_data_df.columns = ['_'.join(col).strip() if isinstance(col, tuple) else col for col in old_data_df.columns]
 
+            # Display the first few rows to confirm the change
+            st.write("Flattened DataFrame columns:")
+            st.dataframe(old_data_df.head())
+
+            # Ensure 'Date' column is properly formatted
+            if 'Date' in old_data_df.columns:
+                if old_data_df['Date'].dtype != 'datetime64[ns]':
+                    old_data_df['Date'] = pd.to_datetime(old_data_df['Date'])
+
+            # Plot the chart with updated column names
             try:
                 st.line_chart(
                     old_data_df,
-                    x='Date',  
-                    y='Close',  
-                    color='Stock Ticker' if 'Stock Ticker' in old_data_df.columns else None, 
+                    x='Date',  # Updated to match flattened columns
+                    y='Close',  # Updated to match flattened columns
+                    color='Stock Ticker_' if 'Stock Ticker_' in old_data_df.columns else None,
                 )
             except Exception as e:
                 st.error(f"Error displaying chart: {e}")

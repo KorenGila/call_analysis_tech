@@ -143,27 +143,19 @@ if page == "Call-Analysis":
                 old_data_df = pd.concat([old_data_df, old_df])
 
         if not stock_data_df.empty:
-  
-            # Flatten the multi-index columns for easier access (removes empty second level if any)
-            old_data_df.columns = [col[0] if isinstance(col, tuple) else col for col in old_data_df.columns]
+            old_data_df.columns = ['_'.join(col).strip() if isinstance(col, tuple) else col for col in old_data_df.columns]
 
-            # Ensure 'Date' column is properly formatted
             if 'Date' in old_data_df.columns:
                 if old_data_df['Date'].dtype != 'datetime64[ns]':
                     old_data_df['Date'] = pd.to_datetime(old_data_df['Date'])
 
-            # Plot the chart with updated column names
-            try:
-                st.line_chart(
-                    old_data_df,
-                    x='Date',  # Now just 'Date'
-                    y='Close',  # Just 'Close' if you're working with one stock
-                    color='Stock Ticker' if 'Stock Ticker' in old_data_df.columns else None,
-                )
-            except Exception as e:
-                st.error(f"Error displaying chart: {e}")
+            pivot_df = old_data_df.pivot(index='Date', columns='Stock Ticker', values='Close')
+
+            st.line_chart(pivot_df)
+            
         else:
             st.warning("No data available to display.")
+
         
         
 

@@ -143,12 +143,24 @@ if page == "Call-Analysis":
                 old_data_df = pd.concat([old_data_df, old_df])
 
         if not stock_data_df.empty:
-            st.line_chart(
-                old_data_df,
-                x='Date',  
-                y='Close',  
-                color='Stock Ticker',
-            )
+            # Ensure 'Date' column exists
+            if 'Date' not in old_data_df.columns:
+                old_data_df = old_data_df.reset_index()  # Make 'Date' a column if it's in the index
+
+            # Ensure 'Date' is in datetime format
+            if old_data_df['Date'].dtype != 'datetime64[ns]':
+                old_data_df['Date'] = pd.to_datetime(old_data_df['Date'])
+
+            # Plot the chart
+            try:
+                st.line_chart(
+                    old_data_df,
+                    x='Date',  
+                    y='Close',  
+                    color='Stock Ticker' if 'Stock Ticker' in old_data_df.columns else None,  # Check if 'Stock Ticker' exists
+                )
+            except Exception as e:
+                st.error(f"Error displaying chart: {e}")
         else:
             st.warning("No data available to display.")
         

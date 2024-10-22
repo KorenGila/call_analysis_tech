@@ -14,12 +14,12 @@ import matplotlib.pyplot as plt
 
 
 st.set_page_config(
-    page_title='Call Analysis',
+    page_title='Portfolio Optimization',
     page_icon=':earth_americas:',  
 )
 
 st.sidebar.title("Navigation")
-page = st.sidebar.selectbox("Choose a page", ["Call-Analysis", "Portfolio Optimization"])
+page = st.sidebar.selectbox("Choose a page", ["Portfolio Optimization"])
 
 if page == "Call-Analysis":
     st.cache_data.clear()

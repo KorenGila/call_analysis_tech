@@ -263,7 +263,7 @@ elif page == "Portfolio Optimization":
     tickers = st_tags(
         label="Enter one stock ticker at a time.",
         text="Press enter to add more",
-        value=["AAPL", "MSFT"], 
+        value=["NVDA", "MSFT"], 
     )
 
 

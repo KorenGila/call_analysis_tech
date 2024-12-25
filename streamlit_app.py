@@ -51,7 +51,7 @@ if page == "Call-Analysis":
     def is_valid_ticker(ticker):
         try:
             # Attempt to download historical data to validate the ticker
-            data = yf.download(ticker, period="1d")
+            data = yf.download(ticker, period="7d")
             if not data.empty:
                 return True
         except Exception as e:
@@ -252,9 +252,9 @@ elif page == "Portfolio Optimization":
 
     def is_valid_ticker(ticker):
         try:
-            stock = yf.Ticker(ticker)
-            info = stock.info
-            if info.get('symbol') is not None:
+            # Attempt to download historical data to validate the ticker
+            data = yf.download(ticker, period="7d")
+            if not data.empty:
                 return True
         except Exception as e:
             return False

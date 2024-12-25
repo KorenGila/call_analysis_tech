@@ -14,14 +14,14 @@ import matplotlib.pyplot as plt
 
 
 st.set_page_config(
-    page_title='Portfolio Optimization',
+    page_title='Call Analysis',
     page_icon=':earth_americas:',  
 )
 
 st.sidebar.title("Navigation")
-page = st.sidebar.selectbox("Choose a page", ["Portfolio Optimization", "Call-Analysis"])
+page = st.sidebar.selectbox("Choose a page", ["Portfolio Optimization", "Call Analysis"])
 
-if page == "Call-Analysis":
+if page == "Call Analysis":
     st.cache_data.clear()
     @st.cache_data
     def get_stock_data(ticker, start_date='2020-01-01', end_date='2023-12-31'):

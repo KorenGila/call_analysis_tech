@@ -1,6 +1,6 @@
-streamlit
-pandas
-yfinance
+streamlit==1.27.0
+yfinance==0.2.25
+pandas==2.1.0
 scipy
 streamlit-tags
 pyportfolioopt

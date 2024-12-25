@@ -19,7 +19,7 @@ st.set_page_config(
 )
 
 st.sidebar.title("Navigation")
-page = st.sidebar.selectbox("Choose a page", ["Portfolio Optimization"])
+page = st.sidebar.selectbox("Choose a page", ["Portfolio Optimization", "Call-Analysis"])
 
 if page == "Call-Analysis":
     st.cache_data.clear()

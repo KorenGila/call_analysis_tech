@@ -10,13 +10,15 @@ from pypfopt.efficient_frontier import EfficientFrontier
 from pypfopt import risk_models
 from pypfopt import expected_returns
 import matplotlib.pyplot as plt
-
-
+import requests_cache
 
 st.set_page_config(
     page_title='Call Analysis',
     page_icon=':earth_americas:',  
 )
+
+session = requests_cache.CachedSession("yfinance_cache", expire_after=3600)
+
 
 st.sidebar.title("Navigation")
 page = st.sidebar.selectbox("Choose a page", ["Call Analysis", "Portfolio Optimization"])
@@ -50,7 +52,6 @@ if page == "Call Analysis":
 
     def is_valid_ticker(ticker):
         try:
-            # Attempt to download historical data to validate the ticker
             data = yf.download(ticker, period="7d")
             if not data.empty:
                 return True
@@ -71,6 +72,13 @@ if page == "Call Analysis":
             st.warning(f"{ticker} is not a valid ticker symbol.")
 
 
+    def calculate_volatility(prices):
+            if len(prices) < 2:
+                return np.nan  
+            returns = prices.pct_change().dropna()
+            volatility = np.std(returns) * np.sqrt(252)
+            return volatility
+    
 
     def get_call_price(stock):
         last = yf.Ticker(stock)
@@ -80,7 +88,10 @@ if page == "Call Analysis":
         else:
             S = history_data['Close'][0]
 
-        sigma = calculate_volatility(stock_data_df[stock_data_df['Stock Ticker'] == stock]['Close'])
+        stock_prices = stock_data_df[stock_data_df['Stock Ticker'] == stock]['Close']
+        stock_prices = stock_prices.dropna(axis=1, how='all')
+
+        sigma = calculate_volatility(stock_prices)
 
         d1 = (np.log(S / K) + (R + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
         d2 = d1 - sigma * np.sqrt(T)
@@ -102,7 +113,11 @@ if page == "Call Analysis":
 
         S = history_data['Close'][0]
 
-        sigma = calculate_volatility(stock_data_df[stock_data_df['Stock Ticker'] == stock]['Close'])
+        stock_prices = stock_data_df[stock_data_df['Stock Ticker'] == stock]['Close']
+        stock_prices = stock_prices.dropna(axis=1, how='all')
+
+        sigma = calculate_volatility(stock_prices)
+       
 
         d1 = (np.log(S / K) + (R + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
         d2 = d1 - sigma * np.sqrt(T)
@@ -118,22 +133,14 @@ if page == "Call Analysis":
 
 
     if selected_stocks:
-        stock_data_df = pd.DataFrame()
+        stock_data_df = pd.DataFrame()        
+        st.header('Stock Price Over Time', divider='gray')
+        
+        old_data_df = pd.DataFrame()
         for stock in selected_stocks:
             stock_df = get_stock_data(ticker=stock, start_date=start_date_str, end_date=end_date_str)
             stock_df['Stock Ticker'] = stock
             stock_data_df = pd.concat([stock_data_df, stock_df])
-
-        def calculate_volatility(prices):
-            if len(prices) < 2:
-                return np.nan  
-            returns = prices.pct_change().dropna()
-            volatility = np.std(returns) * np.sqrt(252)
-            return volatility
-
-        st.header('Stock Price Over Time', divider='gray')
-        old_data_df = pd.DataFrame()
-        for stock in selected_stocks:
             stock_data = yf.download(stock, period='max')
             if not stock_data.empty:
                 first_trading_date = stock_data.index.min()
@@ -141,20 +148,32 @@ if page == "Call Analysis":
                 old_df = get_stock_data(ticker=stock, start_date=first_date_str, end_date=end_date_str)
                 old_df['Stock Ticker'] = stock
                 old_data_df = pd.concat([old_data_df, old_df])
-
+        
         if not stock_data_df.empty:
-            old_data_df.columns = ['_'.join(col).strip() if isinstance(col, tuple) else col for col in old_data_df.columns]
-
             if 'Date' in old_data_df.columns:
-                if old_data_df['Date'].dtype != 'datetime64[ns]':
-                    old_data_df['Date'] = pd.to_datetime(old_data_df['Date'])
-
-            pivot_df = old_data_df.pivot(index='Date', columns='Stock Ticker', values='Close')
-
-            st.line_chart(pivot_df)
+                old_data_df['Date'] = pd.to_datetime(old_data_df['Date'])
             
+            if old_data_df.index.name == 'Date' and 'Date' in old_data_df.columns:
+                old_data_df = old_data_df.drop(columns=['Date'])
+            
+            old_data_df = old_data_df.reset_index()
+            
+            pivot_df = old_data_df.pivot_table(
+                index='Date',
+                columns='Stock Ticker',
+                values='Close',
+                aggfunc='last'
+            )
+            
+            if isinstance(pivot_df.columns, pd.MultiIndex):
+                pivot_df.columns = pivot_df.columns.get_level_values(-1)
+            
+            st.line_chart(pivot_df)
         else:
             st.warning("No data available to display.")
+
+
+
 
         
         
@@ -210,19 +229,23 @@ if page == "Call Analysis":
                 st.warning(f"No data available for {stock}.")
             else:
                 stock_prices = stock_data_df[stock_data_df['Stock Ticker'] == stock]['Close']
-                volatility = calculate_volatility(stock_prices)
-                volatility = f"{volatility:.2f}"    
+                stock_prices = stock_prices.dropna(axis=1, how='all')
+                vol = calculate_volatility(stock_prices)
+                if isinstance(vol, pd.Series):
+                    vol = vol.iloc[0]
+                volatility = f"{vol:.2f}"    
                 final = history_data['Close'][0]
                 final = f"{final:.2f}"
-            
-                final = history_data['Close'][-1]
-                final = f"{final:.2f}"
-                
                 CaP = get_call_price(stock)
-                CaP = f"{CaP:.2f}"
-                Put_price = get_put_price(stock) 
-                Put_price = f"{Put_price:.2f}"
+                if isinstance(CaP, np.ndarray):
+                    CaP = CaP.item()  
+                CaP = f"{float(CaP):.2f}"
 
+                Put_price = get_put_price(stock)
+                if isinstance(Put_price, np.ndarray):
+                    Put_price = Put_price.item()
+                Put_price = f"{float(Put_price):.2f}"
+                
                 circle_html = f"""<div class="circle">
                     <div class="content">{stock}</div>
                     <div>
@@ -252,7 +275,6 @@ elif page == "Portfolio Optimization":
 
     def is_valid_ticker(ticker):
         try:
-            # Attempt to download historical data to validate the ticker
             data = yf.download(ticker, period="7d")
             if not data.empty:
                 return True
@@ -283,7 +305,7 @@ elif page == "Portfolio Optimization":
         if stock_df.empty:
             st.warning(f"No data available for {ticker}.")
         else:
-            all_stock_data[ticker] = stock_df['Adj Close']
+            all_stock_data[ticker] = stock_df['Close']
 
     mu = expected_returns.mean_historical_return(all_stock_data)
 
@@ -348,7 +370,3 @@ elif page == "Portfolio Optimization":
 
 
         st.pyplot(fig)
-    
-
-    
-
